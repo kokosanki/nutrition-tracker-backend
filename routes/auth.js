@@ -3,16 +3,13 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
 const authenticate = require("../middleware/authenticate");
+const { validateSignup } = require("../middleware/validators");
 
 const router = express.Router();
 
-router.post("/signup", async (req, res) => {
+router.post("/signup", validateSignup, async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
-    }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
