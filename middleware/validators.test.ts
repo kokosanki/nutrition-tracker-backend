@@ -1,12 +1,12 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import request from "supertest";
 import { describe, it, expect } from "vitest";
-import { validateSignup } from "./validators.js";
+import { validateSignup } from "./validators";
 
 function buildApp() {
   const app = express();
   app.use(express.json());
-  app.post("/test", validateSignup, (req, res) => {
+  app.post("/test", validateSignup, (req: Request, res: Response) => {
     res.status(200).json({ ok: true });
   });
   return app;

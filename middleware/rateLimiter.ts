@@ -1,4 +1,4 @@
-const rateLimit = require("express-rate-limit");
+import rateLimit from "express-rate-limit";
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -16,4 +16,4 @@ const signupLimiter = rateLimit({
   message: { error: "Too many accounts created, please try again later" },
 });
 
-module.exports = { loginLimiter, signupLimiter };
+export { loginLimiter, signupLimiter };

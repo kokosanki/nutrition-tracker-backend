@@ -1,14 +1,14 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const pool = require("../db");
-const authenticate = require("../middleware/authenticate");
-const { validateSignup } = require("../middleware/validators");
-const { loginLimiter, signupLimiter } = require("../middleware/rateLimiter");
+import express, { Request, Response } from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import pool from "../db";
+import authenticate from "../middleware/authenticate";
+import { validateSignup } from "../middleware/validators";
+import { loginLimiter, signupLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
 
-router.post("/signup", signupLimiter, validateSignup, async (req, res) => {
+router.post("/signup", signupLimiter, validateSignup, async (req: Request, res: Response) => {
   try {
     const { email, password, name } = req.body;
 
@@ -21,7 +21,7 @@ router.post("/signup", signupLimiter, validateSignup, async (req, res) => {
 
     res.status(201).json({ user: result.rows[0] });
   } catch (err) {
-    if (err.code === "23505") {
+    if (err && typeof err === "object" && "code" in err && err.code === "23505") {
       return res.status(409).json({ error: "Email already registered" });
     }
     console.error(err);
@@ -51,7 +51,7 @@ router.post("/login", loginLimiter, async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET as string, {
       expiresIn: "7d",
     });
 
@@ -87,4 +87,4 @@ router.get("/me", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

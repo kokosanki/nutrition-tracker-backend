@@ -1,4 +1,5 @@
-const { body, validationResult } = require("express-validator");
+import { Request, Response, NextFunction } from "express";
+import { body, validationResult } from "express-validator";
 
 const validateSignup = [
   body("email").isEmail().withMessage("Invalid email address").normalizeEmail(),
@@ -13,7 +14,7 @@ const validateSignup = [
     .withMessage("Password must contain a number")
     .matches(/[^A-Za-z0-9]/)
     .withMessage("Password must contain a special character"),
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ error: errors.array()[0].msg });
@@ -22,4 +23,4 @@ const validateSignup = [
   },
 ];
 
-module.exports = { validateSignup };
+export { validateSignup };

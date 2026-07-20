@@ -1,12 +1,13 @@
-require("dotenv").config();
-const express = require("express");
-const pool = require("./db");
+import "dotenv/config";
+import express from "express";
+import pool from "./db";
+import authRoutes from "./routes/auth";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import authenticate from "./middleware/authenticate";
+
 const app = express();
 const port = process.env.PORT || 3000;
-const authRoutes = require('./routes/auth');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
-const authenticate = require('./middleware/authenticate');
 
 app.use(cors({
   origin: 'http://localhost:5173',
