@@ -8,7 +8,13 @@ import { loginLimiter, signupLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
 
-router.post("/signup", signupLimiter, validateSignup, async (req: Request, res: Response) => {
+interface SignupBody {
+  email: string;
+  password: string;
+  name: string;
+}
+
+router.post("/signup", signupLimiter, validateSignup, async (req: Request<{}, {}, SignupBody>, res: Response) => {
   try {
     const { email, password, name } = req.body;
 
@@ -29,7 +35,12 @@ router.post("/signup", signupLimiter, validateSignup, async (req: Request, res: 
   }
 });
 
-router.post("/login", loginLimiter, async (req, res) => {
+interface LoginBody {
+  email: string;
+  password: string;
+}
+
+router.post("/login", loginLimiter, async (req: Request<{}, {}, LoginBody>, res: Response) => {
   try {
     const { email, password } = req.body;
 
