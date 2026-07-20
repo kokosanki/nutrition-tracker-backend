@@ -10,13 +10,13 @@ const router = express.Router();
 
 router.post("/signup", signupLimiter, validateSignup, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email",
-      [email, passwordHash],
+      "INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name",
+      [email, passwordHash, name],
     );
 
     res.status(201).json({ user: result.rows[0] });
@@ -77,7 +77,7 @@ router.post("/logout", (req, res) => {
 router.get("/me", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, email FROM users WHERE id = $1",
+      "SELECT id, email, name FROM users WHERE id = $1",
       [req.userId],
     );
     res.json({ user: result.rows[0] });
