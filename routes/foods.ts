@@ -12,6 +12,7 @@ interface OffNutriments {
 interface OffProduct {
   product_name?: string;
   code?: string;
+  serving_size?: string;
   nutriments?: OffNutriments;
 }
 
@@ -48,6 +49,7 @@ router.get("/search", async (req: Request, res: Response) => {
       return {
         name: p.product_name,
         offId: p.code,
+        serving: p.serving_size ?? null,
         caloriesPer100g: p.nutriments?.["energy-kcal_100g"] ?? null,
         proteinPer100g: p.nutriments?.proteins_100g ?? null,
         carbsPer100g: p.nutriments?.carbohydrates_100g ?? null,
