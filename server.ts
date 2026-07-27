@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import pool from "./db";
 import authRoutes from "./routes/auth";
+import foodRoutes from './routes/foods';
+import logRoutes from './routes/logs';
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import authenticate from "./middleware/authenticate";
@@ -23,7 +25,8 @@ app.get("/health", (req, res) => {
 });
 
 app.use('/auth', authRoutes);
-
+app.use('/foods', foodRoutes)
+app.use('/logs', logRoutes);
 
 app.get("/test-items", authenticate, async (req, res) => {
   try {
