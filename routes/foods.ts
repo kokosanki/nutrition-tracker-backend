@@ -27,8 +27,14 @@ router.get("/search", async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Query parameter "q" is required' });
     }
 
+    const requestedPageSize = Number(req.query.limit);
+    const pageSize =
+      Number.isInteger(requestedPageSize) && requestedPageSize > 0
+        ? Math.min(requestedPageSize, 100)
+        : 20;
+
     const offBaseUrl = process.env.OFF_API_URL;
-    const url = `${offBaseUrl}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&page_size=20&sort_by=unique_scans_n`;
+    const url = `${offBaseUrl}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&page_size=${pageSize}&sort_by=unique_scans_n`;
 
     const response = await fetch(url, {
       headers: {
