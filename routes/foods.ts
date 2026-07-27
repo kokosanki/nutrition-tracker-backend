@@ -2,6 +2,9 @@ import { Router, Request, Response } from "express";
 
 const router = Router();
 
+const round = (value?: number): number | null =>
+  value == null ? null : Math.round(value);
+
 interface OffNutriments {
   "energy-kcal_100g"?: number;
   proteins_100g?: number;
@@ -50,10 +53,10 @@ router.get("/search", async (req: Request, res: Response) => {
         name: p.product_name,
         offId: p.code,
         serving: p.serving_size ?? null,
-        caloriesPer100g: p.nutriments?.["energy-kcal_100g"] ?? null,
-        proteinPer100g: p.nutriments?.proteins_100g ?? null,
-        carbsPer100g: p.nutriments?.carbohydrates_100g ?? null,
-        fatPer100g: p.nutriments?.fat_100g ?? null,
+        caloriesPer100g: round(p.nutriments?.["energy-kcal_100g"]),
+        proteinPer100g: round(p.nutriments?.proteins_100g),
+        carbsPer100g: round(p.nutriments?.carbohydrates_100g),
+        fatPer100g: round(p.nutriments?.fat_100g),
       };
     });
 
