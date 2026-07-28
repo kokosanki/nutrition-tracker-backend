@@ -1,12 +1,13 @@
 import { Router, Request, Response } from "express";
 import pool from "../db";
 import authenticate from "../middleware/authenticate";
+import type { MealType } from "@/constants/mealTypes.ts";
 
 const router = Router();
 
 interface LogFoodBody {
   loggedDate: string;
-  mealType: string;
+  mealType: MealType;
   productName: string;
   offId?: string;
   amountGrams: number;
@@ -75,12 +76,14 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   }
 });
 
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get("/", authenticate, async (req: Request, res: Response) => {
   try {
     const date = req.query.date;
 
-    if (!date || typeof date !== 'string') {
-      return res.status(400).json({ error: 'Query parameter "date" is required' });
+    if (!date || typeof date !== "string") {
+      return res
+        .status(400)
+        .json({ error: 'Query parameter "date" is required' });
     }
 
     const result = await pool.query(
@@ -99,13 +102,13 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
        FROM logged_foods
        WHERE user_id = $1 AND logged_date = $2
        ORDER BY created_at ASC`,
-      [req.userId, date]
+      [req.userId, date],
     );
 
     res.json({ loggedFoods: result.rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Something went wrong fetching logs' });
+    res.status(500).json({ error: "Something went wrong fetching logs" });
   }
 });
 
