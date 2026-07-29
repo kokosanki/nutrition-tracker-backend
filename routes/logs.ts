@@ -6,70 +6,88 @@ import type { MealType } from "@/constants/mealTypes.ts";
 const router = Router();
 
 interface LogFoodBody {
+  name: string;
+  offId?: string;
+  serving?: string | null;
+  caloriesPer100g: number | null;
+  proteinPer100g?: number | null;
+  carbsPer100g?: number | null;
+  fatPer100g?: number | null;
+  amountGrams: number;
   loggedDate: string;
   mealType: MealType;
-  productName: string;
-  offId?: string;
-  amountGrams: number;
-  caloriesPer100g: number;
-  proteinPer100g?: number;
-  carbsPer100g?: number;
-  fatPer100g?: number;
 }
+
+interface LoggedFood extends LogFoodBody {
+  id: number;
+}
+
+const rowToLoggedFood = (row: any): LoggedFood => {
+  return {
+    id: row.id,
+    loggedDate: row.logged_date,
+    mealType: row.meal_type,
+    name: row.name,
+    offId: row.off_id,
+    serving: row.serving,
+    amountGrams: Number(row.amount_grams),
+    caloriesPer100g:
+      row.calories_per_100g != null ? Number(row.calories_per_100g) : null,
+    proteinPer100g:
+      row.protein_per_100g != null ? Number(row.protein_per_100g) : null,
+    carbsPer100g:
+      row.carbs_per_100g != null ? Number(row.carbs_per_100g) : null,
+    fatPer100g: row.fat_per_100g != null ? Number(row.fat_per_100g) : null,
+  };
+};
 
 router.post("/", authenticate, async (req: Request, res: Response) => {
   try {
     const {
-      loggedDate,
-      mealType,
-      productName,
+      name,
       offId,
-      amountGrams,
+      serving,
       caloriesPer100g,
       proteinPer100g,
       carbsPer100g,
       fatPer100g,
+      amountGrams,
+      loggedDate,
+      mealType,
     } = req.body as LogFoodBody;
 
     if (
+      !name ||
       !loggedDate ||
       !mealType ||
-      !productName ||
       !amountGrams ||
       caloriesPer100g == null
     ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const scale = amountGrams / 100;
-    const round2 = (n: number) => Math.round(n * 100) / 100;
-
-    const calories = round2(caloriesPer100g * scale);
-    const protein =
-      proteinPer100g != null ? round2(proteinPer100g * scale) : null;
-    const carbs = carbsPer100g != null ? round2(carbsPer100g * scale) : null;
-    const fat = fatPer100g != null ? round2(fatPer100g * scale) : null;
-
     const result = await pool.query(
       `INSERT INTO logged_foods
-        (user_id, logged_date, meal_type, product_name, off_id, amount_grams, calories, protein, carbs, fat)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        (user_id, logged_date, meal_type, name, off_id, serving, amount_grams,
+         calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         req.userId,
         loggedDate,
         mealType,
-        productName,
+        name,
         offId ?? null,
+        serving ?? null,
         amountGrams,
-        calories,
-        protein,
-        carbs,
-        fat,
+        caloriesPer100g,
+        proteinPer100g ?? null,
+        carbsPer100g ?? null,
+        fatPer100g ?? null,
       ],
     );
 
-    res.status(201).json({ loggedFood: result.rows[0] });
+    res.status(201).json({ loggedFood: rowToLoggedFood(result.rows[0]) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Something went wrong logging this food" });
@@ -88,16 +106,9 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
 
     const result = await pool.query(
       `SELECT
-        id,
-        logged_date::text AS logged_date,
-        meal_type,
-        product_name,
-        off_id,
-        amount_grams,
-        calories,
-        protein,
-        carbs,
-        fat,
+        id, logged_date::text AS logged_date, meal_type,
+        name, off_id, serving, amount_grams,
+        calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g,
         created_at
        FROM logged_foods
        WHERE user_id = $1 AND logged_date = $2
@@ -105,7 +116,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
       [req.userId, date],
     );
 
-    res.json({ loggedFoods: result.rows });
+    res.json({ loggedFoods: result.rows.map(rowToLoggedFood) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Something went wrong fetching logs" });
