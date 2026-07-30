@@ -5,7 +5,7 @@ CREATE TABLE logged_foods (
   meal_type TEXT NOT NULL,
   product_name TEXT NOT NULL,
   off_id TEXT,
-  amount_grams NUMERIC NOT NULL,
+  amount NUMERIC NOT NULL,
   calories NUMERIC NOT NULL,
   protein NUMERIC,
   carbs NUMERIC,

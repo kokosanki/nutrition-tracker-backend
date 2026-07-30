@@ -13,7 +13,7 @@ interface LogFoodBody {
   proteinPer100g?: number | null;
   carbsPer100g?: number | null;
   fatPer100g?: number | null;
-  amountGrams: number;
+  amount: number;
   loggedDate: string;
   mealType: MealType;
 }
@@ -30,7 +30,7 @@ const rowToLoggedFood = (row: any): LoggedFood => {
     name: row.name,
     offId: row.off_id,
     serving: row.serving,
-    amountGrams: Number(row.amount_grams),
+    amount: Number(row.amount),
     caloriesPer100g:
       row.calories_per_100g != null ? Number(row.calories_per_100g) : null,
     proteinPer100g:
@@ -51,7 +51,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
       proteinPer100g,
       carbsPer100g,
       fatPer100g,
-      amountGrams,
+      amount,
       loggedDate,
       mealType,
     } = req.body as LogFoodBody;
@@ -60,7 +60,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
       !name ||
       !loggedDate ||
       !mealType ||
-      !amountGrams ||
+      !amount ||
       caloriesPer100g == null
     ) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -68,7 +68,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
 
     const result = await pool.query(
       `INSERT INTO logged_foods
-        (user_id, logged_date, meal_type, name, off_id, serving, amount_grams,
+        (user_id, logged_date, meal_type, name, off_id, serving, amount,
          calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
@@ -79,7 +79,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
         name,
         offId ?? null,
         serving ?? null,
-        amountGrams,
+        amount,
         caloriesPer100g,
         proteinPer100g ?? null,
         carbsPer100g ?? null,
@@ -107,7 +107,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     const result = await pool.query(
       `SELECT
         id, logged_date::text AS logged_date, meal_type,
-        name, off_id, serving, amount_grams,
+        name, off_id, serving, amount,
         calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g,
         created_at
        FROM logged_foods
