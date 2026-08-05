@@ -49,18 +49,15 @@ router.get("/search", async (req: Request, res: Response) => {
 
     const results = data.products
       .filter((p) => p.product_name)
-      .map((p) => {
-        console.log("p", p);
-        return {
-          name: p.product_name,
-          offId: p.code,
-          serving: p.serving_size ?? null,
-          caloriesPer100g: round(p.nutriments?.["energy-kcal_100g"]),
-          proteinPer100g: round(p.nutriments?.proteins_100g),
-          carbsPer100g: round(p.nutriments?.carbohydrates_100g),
-          fatPer100g: round(p.nutriments?.fat_100g),
-        };
-      });
+      .map((p) => ({
+        name: p.product_name,
+        offId: p.code,
+        serving: p.serving_size ?? null,
+        caloriesPer100g: round(p.nutriments?.["energy-kcal_100g"]),
+        proteinPer100g: round(p.nutriments?.proteins_100g),
+        carbsPer100g: round(p.nutriments?.carbohydrates_100g),
+        fatPer100g: round(p.nutriments?.fat_100g),
+      }));
 
     res.json({ results });
   } catch (err) {

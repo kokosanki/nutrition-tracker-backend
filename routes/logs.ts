@@ -67,6 +67,14 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    if (!isMealType(mealType)) {
+      return res.status(400).json({ error: "Invalid mealType" });
+    }
+
+    if (!(amount > 0)) {
+      return res.status(400).json({ error: "amount must be a positive number" });
+    }
+
     const result = await pool.query(
       `INSERT INTO logged_foods
         (user_id, logged_date, meal_type, name, off_id, serving, amount,
