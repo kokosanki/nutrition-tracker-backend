@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import pool from "../db";
 import authenticate from "../middleware/authenticate";
 import type { MealType } from "@/constants/mealTypes.ts";
+import { isMealType } from "@/constants/mealTypes.ts";
 
 const router = Router();
 
@@ -140,6 +141,83 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong deleting this log' });
+  }
+});
+
+interface UpdateLogBody {
+  amount?: number;
+  mealType?: string;
+  loggedDate?: string;
+}
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+const isValidDateString = (value: string): boolean => {
+  if (!DATE_RE.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+
+router.patch('/:id', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const { amount, mealType, loggedDate } = req.body as UpdateLogBody;
+
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: 'Invalid log id' });
+    }
+
+    if (amount === undefined && mealType === undefined && loggedDate === undefined) {
+      return res.status(400).json({ error: 'Provide at least one field to update' });
+    }
+
+    if (amount !== undefined && !(amount > 0)) {
+      return res.status(400).json({ error: 'amount must be a positive number' });
+    }
+
+    if (mealType !== undefined && !isMealType(mealType)) {
+      return res.status(400).json({ error: 'Invalid mealType' });
+    }
+
+    if (loggedDate !== undefined && !isValidDateString(loggedDate)) {
+      return res.status(400).json({ error: 'loggedDate must be a valid YYYY-MM-DD date' });
+    }
+
+    const setClauses: string[] = [];
+    const values: (string | number)[] = [];
+    let paramIndex = 1;
+
+    if (amount !== undefined) {
+      setClauses.push(`amount = $${paramIndex++}`);
+      values.push(amount);
+    }
+    if (mealType !== undefined) {
+      setClauses.push(`meal_type = $${paramIndex++}`);
+      values.push(mealType);
+    }
+    if (loggedDate !== undefined) {
+      setClauses.push(`logged_date = $${paramIndex++}`);
+      values.push(loggedDate);
+    }
+
+    values.push(id, req.userId!);
+
+    const result = await pool.query(
+      `UPDATE logged_foods
+       SET ${setClauses.join(', ')}
+       WHERE id = $${paramIndex++} AND user_id = $${paramIndex++}
+       RETURNING *`,
+      values
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Logged food not found' });
+    }
+
+    res.json({ loggedFood: rowToLoggedFood(result.rows[0]) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong updating this log' });
   }
 });
 
