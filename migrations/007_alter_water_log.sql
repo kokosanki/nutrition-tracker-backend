@@ -1,0 +1,1 @@
+ALTER TABLE water_logs ALTER COLUMN logged_at TYPE TIMESTAMPTZ USING logged_at AT TIME ZONE 'UTC';
