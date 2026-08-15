@@ -4,6 +4,7 @@ import pool from "./db";
 import authRoutes from "./routes/auth";
 import foodRoutes from './routes/foods';
 import logRoutes from './routes/logs';
+import waterRoutes from './routes/water';
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import authenticate from "./middleware/authenticate";
@@ -27,6 +28,7 @@ app.get("/health", (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/foods', foodRoutes)
 app.use('/logs', logRoutes);
+app.use('/water', waterRoutes);
 
 app.get("/test-items", authenticate, async (req, res) => {
   try {
